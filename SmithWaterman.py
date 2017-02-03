@@ -25,8 +25,10 @@ def f(i, j, mem, list1, list2):
 def fill_matrix(list1, list2, matrix):
     end1 = len(list1) + 1
     end2 = len(list2) + 1
-    for row in range(1, end1):
-        for col in range(1, end2):
+    r1 = range(1, end1)
+    r2 = range(1, end2)
+    for row in r1:
+        for col in r2:
             matrix[row][col] = f(row, col, matrix, list1, list2)
 
 
@@ -47,10 +49,9 @@ def get_max(list1, list2, matrix):
 
 def do_alignment(list1, list2, matrix):
 
-    max = get_max(list1, list2, matrix)
-
-    row = max[0]
-    col = max[1]
+    max_coords = get_max(list1, list2, matrix)
+    row = max_coords[0]
+    col = max_coords[1]
     new_list_1 = []
     new_list_2 = []
     aligner = []
