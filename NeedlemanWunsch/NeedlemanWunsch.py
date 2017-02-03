@@ -17,7 +17,7 @@ def f(i, j, mem, list1, list2):
     left = mem[i][j - 1] + d
     diag = mem[i - 1][j - 1] + (m if list1[i - 1] == list2[j - 1] else s)
 
-    return max(0, up, left, diag)
+    return max(up, left, diag)
 
 
 def fill_matrix(list1, list2, matrix):
