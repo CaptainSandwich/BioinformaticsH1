@@ -1,6 +1,24 @@
+#: Match score
 m = 1
+
+#: Deletion penalty
 d = -1
+
+#: Mismatch penalty
 s = -1
+
+def set_alignment_scores(new_m, new_d, new_s):
+    """
+    Sets the scoring variables for the Needleman-Wunsch algorithm
+
+    :param new_m: New match score
+    :param new_d: New deletion score
+    :param new_s: New mismatch score
+    """
+    global m, d, s
+    m = new_m
+    d = new_d
+    s = new_s
 
 
 def get_file_data(prompt):
@@ -9,47 +27,100 @@ def get_file_data(prompt):
     return file.read()
 
 
-def create_matrix(length1, length2):
-    matrix = [[0 for x in range(length2 + 1)] for y in range(length1 + 1)]
+def create_matrix(vertical_length, horizontal_length):
+    """
+    Creates and initializes a matrix of size vertical_length * horizontal_length for the Smith-Waterman algorithm
+
+    :param int vertical_length: Length of the list representing the vertical sequence of the alignment matrix
+    :param int horizontal_length: Length of the list representing the horizontal sequence of the alignment matrix
+
+    :return matrix: A two dimensional list representing the alignment table initialized such that each element = 0
+    """
+    matrix = [[0 for x in range(horizontal_length + 1)] for y in range(vertical_length + 1)]
     return matrix
 
 
-def f(i, j, mem, list1, list2):
-    up = mem[i - 1][j] + d
-    left = mem[i][j - 1] + d
-    diag = mem[i - 1][j - 1] + (m if list1[i - 1] == list2[j - 1] else s)
+def f(row, column, matrix, vertical_list, horizontal_list):
+    """
+    Finds the optimal alignment for the subsequences vertical_list[0:row-1] and horizontal_list[0:column-1]
+    according to the Smith-Waterman algorithm
+
+    :param int row: Index for the row of matrix
+    :param int column: Index for the column of matrix
+    :param list matrix: The alignment scoring matrix
+    :param list vertical_list: List representing the vertical sequence of the alignment matrix
+    :param list horizontal_list: List representing the horizontal sequence of the alignment matrix
+    :return local_max: The maximum score for the current subsequence
+    """
+    up = matrix[row - 1][column] + d
+    left = matrix[row][column - 1] + d
+    diag = matrix[row - 1][column - 1] + (m if vertical_list[row - 1] == horizontal_list[column - 1] else s)
 
     return max(0, up, left, diag)
 
 
-def fill_matrix(list1, list2, matrix):
-    end1 = len(list1) + 1
-    end2 = len(list2) + 1
+def fill_matrix(vertical_list, horizontal_list, matrix):
+    """
+    Fills the alignment scoring matrix according to the Smith-Waterman algorithm
+
+    :param list vertical_list:
+    :param list horizontal_list:
+    :param list matrix: The alignment scoring matrix
+    """
+    end1 = len(vertical_list) + 1
+    end2 = len(horizontal_list) + 1
     r1 = range(1, end1)
     r2 = range(1, end2)
     for row in r1:
         for col in r2:
-            matrix[row][col] = f(row, col, matrix, list1, list2)
+            matrix[row][col] = f(row, col, matrix, vertical_list, horizontal_list)
 
 
-def get_max(list1, list2, matrix):
+def get_max(matrix):
+    """
+    Finds the location of the optimal local alignment score of the alignment matrix
+
+    :param matrix: The alignment scoring matrix
+    :return max_coords: The row and column of the optimal local alignment score of the matrix
+    """
     max_row = 0
     max_col = 0
     max_val = 0
 
-    for row in range(1, len(list1) + 1):
-        for col in range(1, len(list2) + 1):
+    for row in range(1, len(matrix)):
+        for col in range(1, len(matrix[0])):
             if matrix[row][col] > max_val:
                 max_val = matrix[row][col]
                 max_row = row
                 max_col = col
 
-    return [max_row, max_col]
+    max_coords = [max_row, max_col]
+    return max_coords
 
 
-def do_alignment(list1, list2, matrix):
+def do_alignment(vertical_list, horizontal_list, matrix):
+    """
+    Generates three lists representing the optimal local alignment of vertical_list and horizontal_list,
+    such that matches line up together with '|', mismatches line up together with '.', and gaps insert '-' into the
+    string with the deletion and a ' ' into the alignment string
 
-    max_coords = get_max(list1, list2, matrix)
+    Example:
+    The filled alignment matrix for
+    vertical_list = "GATTACA"
+    and
+    horizontal_list = "GCATGCU"
+    will yield
+    [['G', '-', 'A', 'T', 'T', 'A', 'C', 'A'],
+     ['|', ' ', '|', '|', '.', ' ', '|', '.'],
+     ['G', 'C', 'A', 'T', 'G', '-', 'C', 'U']]
+
+    :param list vertical_list: List representing the vertical sequence of the alignment matrix
+    :param list horizontal_list: List representing the horizontal sequence of the alignment matrix
+    :param list matrix: The alignment scoring matrix
+    :return alignment:
+    """
+
+    max_coords = get_max(matrix)
     row = max_coords[0]
     col = max_coords[1]
     new_list_1 = []
@@ -59,113 +130,22 @@ def do_alignment(list1, list2, matrix):
     while matrix[row][col] != 0:
         if matrix[row][col] == (matrix[row - 1][col] + d):
             new_list_2 = ['-'] + new_list_2
-            new_list_1 = [list1[row - 1]] + new_list_1
+            new_list_1 = [vertical_list[row - 1]] + new_list_1
             row -= 1
             aligner = [' '] + aligner
         elif matrix[row][col] == (matrix[row][col - 1] + d):
-            new_list_2 = [list2[col - 1]] + new_list_2
+            new_list_2 = [horizontal_list[col - 1]] + new_list_2
             new_list_1 = ['-'] + new_list_1
             col -= 1
             aligner = [' '] + aligner
         else:
-            if list1[row - 1] == list2[col - 1]:
+            if vertical_list[row - 1] == horizontal_list[col - 1]:
                 aligner = ['|'] + aligner
             else:
                 aligner = ['.'] + aligner
-            new_list_1 = [list1[row - 1]] + new_list_1
-            new_list_2 = [list2[col - 1]] + new_list_2
+            new_list_1 = [vertical_list[row - 1]] + new_list_1
+            new_list_2 = [horizontal_list[col - 1]] + new_list_2
             col -= 1
             row -= 1
 
     return [new_list_1, aligner, new_list_2]
-
-# file1 = get_file_data("Enter first file name: ")
-# file2 = get_file_data("Enter second file name: ")
-#
-# file1list = list(file1)
-# file2list = list(file2)
-#
-# file1len = len(file1list)
-# file2len = len(file2list)
-
-# i = 0
-#
-# length = str(file1len * file2len)
-#
-# end1 = file2len + 1
-# end2 = file1len + 1
-# for row in range(1, end1):
-#     for col in range(1, end2):
-#         matrix[row][col] = f(row, col, matrix)
-#
-# max_row = 0
-# max_col = 0
-# max_val = 0
-#
-# for row in range(1, len(file2list) + 1):
-#     for col in range(1, len(file1list) + 1):
-#         if matrix[row][col] > max_val:
-#             max_val = matrix[row][col]
-#             max_row = row
-#             max_col = col
-
-# col = max_col
-# row = max_row
-# new_list_1 = []
-# new_list_2 = []
-# backtrace = []
-# while matrix[row][col] != 0:
-#     if matrix[row][col] == (matrix[row - 1][col] - 1):
-#         new_list_1 = [' '] + new_list_1
-#         new_list_2 += [file2list[col]]
-#         row -= 1
-#         backtrace.append(Direction.UP)
-#     elif matrix[row][col] == (matrix[row][col - 1]):
-#         new_list_1 += [file1list[row]]
-#         new_list_2 = [' '] + new_list_2
-#         col -= 1
-#         backtrace.append(Direction.LEFT)
-#     else:
-#         new_list_1 = [file1list[col - 1]] + new_list_1
-#         new_list_2 = [file2list[row - 1]] + new_list_2
-#         col -= 1
-#         row -= 1
-#         backtrace.append(Direction.DIAGONAL)
-
-# if col < row:
-#     print("Column was less than row!")
-#     for i in range(0, max_col):
-#         new_list_1 = new_list_1 + [file1list[i]]
-#     for i in range(1, row):
-#         new_list_1 = [' '] + new_list_1
-#         new_list_2 = new_list_2 + [file2list[i]]
-#     for i in range(max_col, len(file1list)):
-#         new_list_1 = new_list_1 + [file1list[i]]
-# else:
-#     print("Column was greater than row!")
-#     for i in range(1, col):
-#         new_list_1 = new_list_1 + [file1list[i]]
-#         new_list_2 = [' '] + new_list_2
-#     for i in range(col, file1len):
-#         new_list_1 = new_list_1 + [file1list[i]]
-#     for i in range(max_row, len(file2list)):
-#         new_list_2 = new_list_2 + [file2list[i]]
-
-# if col < row:
-#     for i in range(0,row):
-#         new_list_1 = [' '] + new_list_1
-#     new_list_1 = new_list_1 + file1list[row - 1:]
-#     new_list_2 = file2list[0:max_col + 1] + new_list_2
-# else:
-#     for i in range(0,col):
-#         new_list_2 = [' '] + new_list_2
-#     new_list_1 = file1list[0:max_row] + new_list_1
-#     new_list_2 = new_list_2 + file2list[col - 1:]
-
-
-# print(''.join(new_list_1))
-# print(''.join(new_list_2))
-# print(np.matrix(matrix))
-# print(backtrace)
-# print((max_col, max_row))
-# print(max_val)

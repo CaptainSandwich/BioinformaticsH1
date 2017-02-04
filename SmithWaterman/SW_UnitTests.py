@@ -35,8 +35,8 @@ class TestCreateMatrix(unittest.TestCase):
 class TestAlgorithm(unittest.TestCase):
     def test1(self):
         matrix = [[0, 4, 0],
-                  [0, -1, -1],
-                  [0, -1, -1]]
+                  [0, 0, 0],
+                  [0, 0, 0]]
         list1 = "bb"
         list2 = "cb"
         max = SmithWaterman.f(1, 1, matrix, list1, list2)
@@ -62,8 +62,8 @@ class TestAlgorithm(unittest.TestCase):
 
     def test4(self):
         matrix = [[4, 0, 0],
-                  [0, -1, -1],
-                  [0, -1, -1]]
+                  [0, 0, 0],
+                  [0, 0, 0]]
         list1 = "bb"
         list2 = "cb"
         max = SmithWaterman.f(1, 1, matrix, list1, list2)
@@ -251,10 +251,6 @@ class TestDoAlignment(unittest.TestCase):
         list1 = "abcxdex"
         list2 = "xxxcde"
 
-        m = 2
-        s = -1
-        d = -1
-
         alignment = SmithWaterman.do_alignment(list1, list2, filled_matrix)
 
         self.assertEqual(alignment, [['c', 'x', 'd', 'e'], ['|', ' ', '|', '|'], ['c', '-', 'd', 'e']])
@@ -315,4 +311,4 @@ class TestGetMax(unittest.TestCase):
         list1 = "abcxdex"
         list2 = "xxxcde"
 
-        self.assertEqual(SmithWaterman.get_max(list1, list2, filled_matrix), [6,6])
+        self.assertEqual(SmithWaterman.get_max(filled_matrix), [6,6])

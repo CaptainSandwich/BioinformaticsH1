@@ -133,7 +133,7 @@ class TestAlignment(unittest.TestCase):
         list1 = "GATTACA"
         list2 = "GCATGCU"
 
-        alignment = NeedlemanWunsch.do_alignment(list1, list2, filled_matrix)
+        alignment = NeedlemanWunsch.generate_alignment(list1, list2, filled_matrix)
 
         self.assertEqual(alignment, [['G', '-', 'A', 'T', 'T', 'A', 'C', 'A'],
                                      ['|', ' ', '|', '|', '.', ' ', '|', '.'],

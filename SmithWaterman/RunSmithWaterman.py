@@ -1,4 +1,5 @@
 import SmithWaterman
+import AlignmentTools
 
 file1 = SmithWaterman.get_file_data("Enter first file name: ")
 file2 = SmithWaterman.get_file_data("Enter second file name: ")
@@ -11,7 +12,7 @@ file2len = len(file2list)
 
 matrix = SmithWaterman.create_matrix(file1len, file2len)
 
-SmithWaterman.fill_matrix(file1list, file2list, matrix)
+AlignmentTools.fill_matrix(file1list, file2list, matrix)
 
 alignment = SmithWaterman.do_alignment(file1list, file2list, matrix)
 
